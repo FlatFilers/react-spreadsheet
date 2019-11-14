@@ -1,13 +1,10 @@
-// @flow
-
-import React from "react";
-import type { Node } from "react";
+import * as React from "react";
 import { range } from "./util";
 
 export type Props = {
-  columns: number,
-  hideColumnIndicators: ?boolean,
-  children: Node
+  columns: number;
+  hideColumnIndicators?: boolean;
+  children: React.ReactChildren;
 };
 
 const Table = ({ children, columns, hideColumnIndicators }: Props) => {
@@ -16,7 +13,7 @@ const Table = ({ children, columns, hideColumnIndicators }: Props) => {
     <col key={i} />
   ));
   return (
-    <table className="SpreadsheetTable">
+    <table className='SpreadsheetTable'>
       <colgroup>{columnNodes}</colgroup>
       <tbody>{children}</tbody>
     </table>
