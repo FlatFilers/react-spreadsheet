@@ -1,41 +1,36 @@
-// @flow
-
-import React, { PureComponent } from "react";
-import type { Node } from "react";
-import * as Types from "./types";
+import React, { ChangeEvent, PureComponent, ReactNode } from "react";
+import { DataEditorProps } from "./types";
 import { moveCursorToEnd } from "./util";
 
 type Cell = {
-  value: Node
+  value: ReactNode;
 };
 
 type Value = string | number;
 
-export default class DataEditor extends PureComponent<
-  Types.DataEditorProps<Cell, Value>
-> {
-  input: ?HTMLInputElement;
+class DataEditor extends PureComponent<DataEditorProps<Cell, Value>> {
+  public input?: HTMLInputElement;
 
-  static defaultProps = {
+  private static defaultProps = {
     value: ""
   };
 
-  handleChange = (e: SyntheticInputEvent<HTMLInputElement>) => {
+  private handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { onChange, cell } = this.props;
     onChange({ ...cell, value: e.target.value });
   };
 
-  handleInput = (input: ?HTMLInputElement) => {
+  private handleInput = (input?: HTMLInputElement) => {
     this.input = input;
   };
 
-  componentDidMount() {
+  public componentDidMount() {
     if (this.input) {
       moveCursorToEnd(this.input);
     }
   }
 
-  render() {
+  public render() {
     const { getValue, column, row, cell } = this.props;
     const value = getValue({ column, row, data: cell }) || "";
     return (
@@ -51,3 +46,5 @@ export default class DataEditor extends PureComponent<
     );
   }
 }
+
+export default DataEditor;

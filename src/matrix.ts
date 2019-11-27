@@ -1,13 +1,12 @@
 /**
  * Immutable interface for Matrices
  *
- * @todo use Types.Point for all point references
+ * @todo use IPoint for all point references
  *
- * @flow
  */
 
+import { IPoint } from "./types";
 import { range as _range } from "./util";
-import * as Types from "./types";
 
 export type Matrix<T> = Array<Array<T | typeof undefined>>;
 
@@ -16,7 +15,7 @@ export function get<T>(
   row: number,
   column: number,
   matrix: Matrix<T>
-): T | typeof undefined {
+): T | undefined {
   const columns = matrix[row];
   if (columns === undefined) {
     return undefined;
@@ -26,11 +25,11 @@ export function get<T>(
 
 /** Creates a slice of matrix from startPoint up to, but not including, endPoint. */
 export function slice<T>(
-  startPoint: Types.Point,
-  endPoint: Types.Point,
+  startPoint: IPoint,
+  endPoint: IPoint,
   matrix: Matrix<T>
 ): Matrix<T> {
-  let sliced = [];
+  const sliced: any[] = [];
   const columns = endPoint.column - startPoint.column;
   for (let row = startPoint.row; row <= endPoint.row; row++) {
     const slicedRow = row - startPoint.row;
@@ -108,7 +107,7 @@ export function unset<T>(
 }
 
 export function reduce<T, A>(
-  func: (A, T | typeof undefined, Types.Point) => A,
+  func: (acc: A, value: T | typeof undefined, point: IPoint) => A,
   matrix: Matrix<T>,
   initialValue: A
 ): A {
@@ -129,7 +128,7 @@ export function reduce<T, A>(
 
 /** Creates an array of values by running each element in collection thru iteratee. */
 export function map<T, T2>(
-  func: (T | typeof undefined, Types.Point) => T2,
+  func: (value: T | typeof undefined, point: IPoint) => T2,
   matrix: Matrix<T>
 ): Matrix<T2> {
   return reduce(
@@ -138,7 +137,7 @@ export function map<T, T2>(
       return acc;
     },
     matrix,
-    ([]: Matrix<T2>)
+    []
   );
 }
 
@@ -147,7 +146,7 @@ export function map<T, T2>(
  * to string separated by verticalSeparator
  */
 export function join(
-  matrix: Matrix<*>,
+  matrix: Matrix<any>,
   horizontalSeparator: string = ", ",
   verticalSeparator: string = "\n"
 ): string {
@@ -185,7 +184,7 @@ export function has(row: number, column: number, matrix: Matrix<any>): boolean {
   );
 }
 
-type Size = $Exact<{ columns: number, rows: number }>;
+type Size = { columns: number; rows: number };
 
 /** Gets the size of matrix by returning its number of rows and columns */
 export function getSize(matrix: Matrix<any>): Size {
@@ -196,28 +195,29 @@ export function getSize(matrix: Matrix<any>): Size {
   };
 }
 
-/** Creates an array of points (positive and/or negative) progressing from startPoint up to, but not including, endPoint. */
-export function range(
-  endPoint: Types.Point,
-  startPoint: Types.Point
-): Types.Point[] {
+/**
+ * Creates an array of points (positive and/or negative) progressing from startPoint up to, but not including, endPoint.
+ */
+export function range(endPoint: IPoint, startPoint: IPoint): IPoint[] {
   const points = [];
   const columnsRange =
     startPoint.column !== endPoint.column
       ? _range(endPoint.column, startPoint.column)
       : startPoint.row !== endPoint.row
-        ? [startPoint.column]
-        : [];
+      ? [startPoint.column]
+      : [];
 
   const rowsRange =
     startPoint.row !== endPoint.row
       ? _range(endPoint.row, startPoint.row)
       : startPoint.column !== endPoint.column
-        ? [startPoint.row]
-        : [];
+      ? [startPoint.row]
+      : [];
 
+  // tslint:disable-next-line:prefer-for-of
   for (let i = 0; i < rowsRange.length; i++) {
     const row = rowsRange[i];
+    // tslint:disable-next-line:prefer-for-of
     for (let j = 0; j < columnsRange.length; j++) {
       const column = columnsRange[j];
       points.push({ row, column });
@@ -238,10 +238,11 @@ export const inclusiveRange: typeof range = (endPoint, startPoint) =>
   );
 
 export function toArray<T1, T2>(
-  matrix: Matrix<T1>,
-  transform: ?(T1 | typeof undefined) => T2
-): Array<T1> | Array<T2> {
-  let array = [];
+  matrix: Matrix<any>,
+  transform?: (value?: T1) => T2
+): T1[] | T2[] {
+  const array = [];
+  // tslint:disable-next-line:prefer-for-of
   for (let row = 0; row < matrix.length; row++) {
     for (let column = 0; column < matrix.length; column++) {
       const value = matrix[row][column];

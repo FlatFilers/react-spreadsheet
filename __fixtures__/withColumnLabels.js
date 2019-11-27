@@ -2,7 +2,7 @@ import { createFixture } from "react-cosmos";
 
 import Spreadsheet, {
   createEmptyMatrix
-} from "../src/SpreadsheetStateProvider";
+} from "../dist/SpreadsheetStateProvider";
 import { INITIAL_ROWS } from "./Basic";
 import "./index.css";
 

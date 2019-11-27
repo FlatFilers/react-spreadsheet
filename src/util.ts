@@ -1,7 +1,12 @@
-// @flow
+import { Matrix } from "./matrix";
+import {
+  CellBase,
+  ICellDescriptor,
+  IDimensions,
+  IPoint,
+  IStoreState
+} from "./types";
 
-import * as Types from "./types";
-import type { Matrix } from "./matrix";
 import * as clipboard from "clipboard-polyfill";
 
 export const moveCursorToEnd = (el: HTMLInputElement) => {
@@ -9,7 +14,10 @@ export const moveCursorToEnd = (el: HTMLInputElement) => {
 };
 
 /**
- * Creates an array of numbers (positive and/or negative) progressing from start up to, but not including, end. A step of -1 is used if a negative start is specified without an end or step. If end is not specified, it's set to start with start then set to 0.
+ * Creates an array of numbers (positive and/or negative) progressing from start up to, but not including, end.
+ * A step of -1 is used if a negative start is specified without an end or step.
+ * If end is not specified, it's set to start with start then set to 0.
+ *
  * @param end
  * @param start
  * @param step
@@ -19,7 +27,7 @@ export function range(
   start: number = 0,
   step: number = 1
 ): number[] {
-  let array = [];
+  const array = [];
   if (Math.sign(end - start) === -1) {
     for (let element = start; element > end; element -= step) {
       array.push(element);
@@ -32,9 +40,9 @@ export function range(
   return array;
 }
 
-export function updateData<Cell: Types.CellBase>(
+export function updateData<Cell extends CellBase>(
   data: Matrix<Cell>,
-  cellDescriptor: Types.CellDescriptor<Cell>
+  cellDescriptor: ICellDescriptor<Cell>
 ): Matrix<Cell> {
   const row = data[cellDescriptor.row];
   const nextData = [...data];
@@ -44,9 +52,9 @@ export function updateData<Cell: Types.CellBase>(
   return nextData;
 }
 
-export function setCell<Cell: Types.CellBase>(
+export function setCell<Cell extends CellBase>(
   state: { data: Matrix<Cell> },
-  active: Types.Point,
+  active: IPoint,
   cell: Cell
 ): Matrix<Cell> {
   return updateData(state.data, {
@@ -56,13 +64,13 @@ export function setCell<Cell: Types.CellBase>(
 }
 
 export function isActive(
-  active: $PropertyType<Types.StoreState<*>, "active">,
-  { row, column }: Types.Point
+  active: IStoreState<any>["active"],
+  { row, column }: IPoint
 ): boolean {
   return Boolean(active && column === active.column && row === active.row);
 }
 
-export const getOffsetRect = (element: HTMLElement): Types.Dimensions => ({
+export const getOffsetRect = (element: HTMLElement): IDimensions => ({
   width: element.offsetWidth,
   height: element.offsetHeight,
   left: element.offsetLeft,
@@ -74,7 +82,7 @@ export const getOffsetRect = (element: HTMLElement): Types.Dimensions => ({
  */
 /**
  * Wraps Clipboard.write() with permission check if necessary
- * @param string - The string to be written to the clipboard.
+ * @param data {string} - The string to be written to the clipboard.
  */
 export const writeTextToClipboard = (data: string): void => {
   const write = () => {
@@ -83,9 +91,9 @@ export const writeTextToClipboard = (data: string): void => {
   if (navigator.permissions) {
     navigator.permissions
       .query({
-        name: "clipboard-read"
+        name: "clipboard"
       })
-      .then(readClipboardStatus => {
+      .then((readClipboardStatus: any) => {
         if (readClipboardStatus.state) {
           write();
         }
@@ -100,9 +108,9 @@ export function createEmptyMatrix<T>(rows: number, columns: number): Matrix<T> {
 }
 
 export const getCellDimensions = (
-  point: Types.Point,
-  state: Types.StoreState<*>
-): ?Types.Dimensions => {
+  point: IPoint,
+  state: IStoreState<any>
+): IDimensions => {
   const rowDimensions = state.rowDimensions[point.row];
   const columnDimensions = state.columnDimensions[point.column];
   return (

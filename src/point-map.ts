@@ -1,22 +1,17 @@
 /**
  * Immutable unordered Map like interface of point to value pairs.
  *
- * @flow
  */
-import * as Types from "./types";
+import { IPoint } from "./types";
 
-export type PointMap<T> = {|
-  [row: number]: {|
-    [column: number]: T
-  |}
-|};
+export type PointMap<T> = {
+  [row: number]: {
+    [column: number]: T;
+  };
+};
 
 /** Sets the value for point in map */
-export function set<T>(
-  point: Types.Point,
-  value: T,
-  map: PointMap<T>
-): PointMap<T> {
+export function set<T>(point: IPoint, value: T, map: PointMap<T>): PointMap<T> {
   return {
     ...map,
     [point.row]: {
@@ -27,15 +22,14 @@ export function set<T>(
 }
 
 export function unset<T>(
-  { row, column }: Types.Point,
+  { row, column }: IPoint,
   map: PointMap<T>
 ): PointMap<T> {
   if (!(row in map) || !(column in map[row])) {
     return map;
   }
   const {
-    // $FlowFixMe
-    [String(row)]: { [String(column)]: _, ...nextRow },
+    [row]: { [column]: _, ...nextRow },
     ...nextMap
   } = map;
   if (Object.keys(nextRow).length === 0) {
@@ -45,41 +39,38 @@ export function unset<T>(
 }
 
 /** Gets the value for point in map */
-export function get<T>(
-  point: Types.Point,
-  map: PointMap<T>
-): typeof undefined | T {
+export function get<T>(point: IPoint, map: PointMap<T>): typeof undefined | T {
   return map[point.row] && map[point.row][point.column];
 }
 
 /** Checks if map has point assigned to value */
-export function has<T>(point: Types.Point, map: PointMap<T>): boolean {
+export function has<T>(point: IPoint, map: PointMap<T>): boolean {
   return point.row in map && point.column in map[point.row];
 }
 
 export function getRow<T>(row: number, map: PointMap<T>): T[] {
   return row in map
-    ? // $FlowFixMe
-      Object.keys(map[row]).map(column => map[row][column])
+    ? Object.keys(map[row]).map((column: any) => map[row][column])
     : [];
 }
 
 export function getColumn<T>(column: number, map: PointMap<T>): T[] {
-  // $FlowFixMe
-  return Object.keys(map).map(row => map[row][column]);
+  return Object.keys(map).map((row: any) => map[row][column]);
 }
 
-const EMPTY: PointMap<any> = ({}: any);
+const EMPTY: PointMap<any> = {};
 
 /** Creates a new PointMap instance from an array-like or iterable object. */
-export function from<T>(pairs: [Types.Point, T][]): PointMap<T> {
+export function from<T>(pairs: Array<[IPoint, T]>): PointMap<T> {
   return pairs.reduce((acc, [point, value]) => set(point, value, acc), EMPTY);
 }
 
 /** Returns the number of elements in a PointMap object. */
-export function size(map: PointMap<*>): number {
+export function size(map: PointMap<any>): number {
   let acc = 0;
+  // tslint:disable-next-line:variable-name
   const _map_keys = Object.keys(map);
+  // tslint:disable-next-line:prefer-for-of
   for (let i = 0; i < _map_keys.length; i++) {
     const row = Number(_map_keys[i]);
     const columns = map[row];
@@ -88,29 +79,39 @@ export function size(map: PointMap<*>): number {
   return acc;
 }
 
-/** Applies a function against an accumulator and each value and point in the map (from left to right) to reduce it to a single value */
+/*
+ * Applies a function against an accumulator and each value
+ * and point in the map (from left to right) to reduce it to a single value
+ */
 export function reduce<A, T>(
-  func: (A, value: T, point: Types.Point) => A,
+  func: (_: A, value: T, point: IPoint) => A,
   map: PointMap<T>,
   initialValue: A
 ): A {
   let acc = initialValue;
+  // tslint:disable-next-line:variable-name
   const _map_keys = Object.keys(map);
+  // tslint:disable-next-line:prefer-for-of
   for (let i = 0; i < _map_keys.length; i++) {
     const row = Number(_map_keys[i]);
     const columns = map[row];
+    // tslint:disable-next-line:variable-name
     const _columns_keys = Object.keys(columns);
+    // tslint:disable-next-line:prefer-for-of
     for (let j = 0; j < _columns_keys.length; j++) {
       const column = Number(_columns_keys[j]);
       const value = columns[column];
-      acc = func(acc, value, { row: row, column: column });
+      acc = func(acc, value, { row, column });
     }
   }
   return acc;
 }
 
 /** Creates a new map with the results of calling a provided function on every value in the calling map */
-export function map<T1, T2>(func: T1 => T2, map: PointMap<T1>): PointMap<T2> {
+export function map<T1, T2>(
+  func: (_: T1) => T2,
+  map: PointMap<T1>
+): PointMap<T2> {
   return reduce(
     (acc, value, point) => set(point, func(value), acc),
     map,
@@ -118,9 +119,12 @@ export function map<T1, T2>(func: T1 => T2, map: PointMap<T1>): PointMap<T2> {
   );
 }
 
-/** Creates a new map of all values predicate returns truthy for. The predicate is invoked with two arguments: (value, key) */
+/*
+ * Creates a new map of all values predicate returns truthy for.
+ * The predicate is invoked with two arguments: (value, key)
+ */
 export function filter<T>(
-  predicate: (T, Types.Point) => boolean,
+  predicate: (_: T, __: IPoint) => boolean,
   map: PointMap<T>
 ): PointMap<T> {
   return reduce(

@@ -1,16 +1,17 @@
-// @flow
-
-import React from "react";
-import type { Node } from "react";
+import React, { FC, ReactNode } from "react";
 import { range } from "./util";
 
 export type Props = {
-  columns: number,
-  hideColumnIndicators: ?boolean,
-  children: Node
+  columns: number;
+  hideColumnIndicators?: boolean;
+  children: ReactNode;
 };
 
-const Table = ({ children, columns, hideColumnIndicators }: Props) => {
+const Table: FC<Props> = ({
+  children,
+  columns,
+  hideColumnIndicators
+}: Props) => {
   const columnIndicatorsShown = !hideColumnIndicators;
   const columnNodes = range(columns + Number(columnIndicatorsShown)).map(i => (
     <col key={i} />

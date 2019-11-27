@@ -1,42 +1,46 @@
-// @flow
-import React, { Component } from "react";
 import classnames from "classnames";
+import React, { Component } from "react";
 import { connect } from "unistore/react";
-import * as Matrix from "./matrix";
-import * as Actions from "./actions";
-import * as Types from "./types";
+
+import { commit as commitAction, edit, setCellData } from "./actions";
+import { get } from "./matrix";
+import {
+  CellBase,
+  commit as commitType,
+  DataEditor,
+  getBindingsForCell,
+  getValue,
+  IDimensions,
+  IPoint,
+  IStoreState,
+  Mode
+} from "./types";
 import { getCellDimensions } from "./util";
 
 type State<Cell> = {
-  cellBeforeUpdate: Cell
+  cellBeforeUpdate: Cell;
 };
 
-type Props<Cell, Value> = {|
-  ...Types.Point,
-  ...Types.Dimensions,
-  DataEditor: Types.DataEditor<Cell, Value>,
-  getValue: Types.getValue<Cell, Value>,
-  onChange: (data: Cell) => void,
-  setCellData: (
-    active: Types.Point,
-    data: Cell,
-    bindings: Types.Point[]
-  ) => void,
-  cell: Cell,
-  hidden: boolean,
-  mode: Types.Mode,
-  edit: () => void,
-  commit: Types.commit<Cell>,
-  getBindingsForCell: Types.getBindingsForCell<Cell>
-|};
+interface IProps<Cell, Value> extends IPoint, IDimensions {
+  DataEditor: DataEditor<Cell, Value>;
+  getValue: getValue<Cell, Value>;
+  onChange: (data: Cell) => void;
+  setCellData: (active: IPoint, data: Cell, bindings: IPoint[]) => void;
+  cell: Cell;
+  hidden: boolean;
+  mode: Mode;
+  edit: () => void;
+  commit: commitType<Cell>;
+  getBindingsForCell: getBindingsForCell<Cell>;
+}
 
-class ActiveCell<Cell: Types.CellBase, Value> extends Component<
-  Props<Cell, Value>,
-  State<*>
+class ActiveCell<Cell extends CellBase, Value> extends Component<
+  IProps<Cell, Value>,
+  State<any>
 > {
-  state = { cellBeforeUpdate: null };
+  public state = { cellBeforeUpdate: null };
 
-  handleChange = (row: number, column: number, cell: Cell) => {
+  private handleChange = (row: number, column: number, cell: Cell) => {
     const { setCellData, getBindingsForCell } = this.props;
     const bindings = getBindingsForCell(cell);
 
@@ -44,7 +48,7 @@ class ActiveCell<Cell: Types.CellBase, Value> extends Component<
   };
 
   // NOTE: Currently all logics here belongs to commit event
-  componentDidUpdate(prevProps: Props<Cell, Value>) {
+  public componentDidUpdate(prevProps: IProps<Cell, Value>) {
     const { cell, mode, commit } = this.props;
 
     if (cell || cell === undefined) {
@@ -63,8 +67,8 @@ class ActiveCell<Cell: Types.CellBase, Value> extends Component<
     }
   }
 
-  render() {
-    let { DataEditor } = this.props;
+  public render() {
+    const { DataEditor } = this.props;
     const {
       getValue,
       row,
@@ -78,7 +82,7 @@ class ActiveCell<Cell: Types.CellBase, Value> extends Component<
       mode,
       edit
     } = this.props;
-    DataEditor = (cell && cell.DataEditor) || DataEditor;
+    // DataEditor = (cell && cell.DataEditor) || DataEditor;
     const readOnly = cell && cell.readOnly;
     return hidden ? null : (
       <div
@@ -100,7 +104,7 @@ class ActiveCell<Cell: Types.CellBase, Value> extends Component<
   }
 }
 
-const mapStateToProps = (state: Types.StoreState<*>) => {
+const mapStateToProps = (state: IStoreState<any>) => {
   const dimensions = state.active && getCellDimensions(state.active, state);
   if (!state.active || !dimensions) {
     return { hidden: true };
@@ -108,8 +112,7 @@ const mapStateToProps = (state: Types.StoreState<*>) => {
   return {
     hidden: false,
     ...state.active,
-    // $FlowFixMe
-    cell: Matrix.get(state.active.row, state.active.column, state.data),
+    cell: get(state.active.row, state.active.column, state.data),
     width: dimensions.width,
     height: dimensions.height,
     top: dimensions.top,
@@ -118,11 +121,8 @@ const mapStateToProps = (state: Types.StoreState<*>) => {
   };
 };
 
-export default connect(
-  mapStateToProps,
-  {
-    setCellData: Actions.setCellData,
-    edit: Actions.edit,
-    commit: Actions.commit
-  }
-)(ActiveCell);
+export default connect(mapStateToProps, {
+  setCellData,
+  edit,
+  commit: commitAction
+})(ActiveCell);

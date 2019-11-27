@@ -3,7 +3,7 @@ import { createFixture } from "react-cosmos";
 
 import Spreadsheet, {
   createEmptyMatrix
-} from "../src/SpreadsheetStateProvider";
+} from "../dist/SpreadsheetStateProvider";
 import { INITIAL_ROWS, INITIAL_COLUMNS } from "./Basic";
 import Select from "react-select";
 import "react-select/dist/react-select.css";
